@@ -5,7 +5,7 @@ import {
   Dimensions,
   TouchableOpacity,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import * as LocalAuthentication from "expo-local-authentication";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,8 +16,48 @@ const { width } = Dimensions.get("window");
 export default function AuthScreen() {
   const [hasBiometrics, setHasBiometrics] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  // const { width } = Dimensions.get("window");
+
+  useEffect(() => {
+    checkBiometrics();
+  }, []);
+
+  const checkBiometrics = async () => {
+    const hasHardware = await LocalAuthentication.hasHardwareAsync();
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    setHasBiometrics(hasHardware && isEnrolled);
+  };
+
+  const authenticate = async () => {
+    try {
+      setIsAuthenticating(true);
+      setError(null);
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+      const supportedTypes =
+        await LocalAuthentication.supportedAuthenticationTypesAsync();
+
+      // HandleSupported types
+      const auth = await LocalAuthentication.authenticateAsync({
+        promptMessage:
+          hasHardware && isEnrolled ? "Use face ID/TouchID" : "Enter your PIN",
+        fallbackLabel: "Use PIN",
+        cancelLabel: "Cancel",
+        disableDeviceFallback: false,
+      });
+
+      if (auth.success) {
+        router.replace("/home");
+      } else {
+        setError("Authentication failed, please try again");
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   return (
     <LinearGradient colors={["#4CAF50", "#2E7032"]} style={styles.container}>
@@ -34,11 +74,16 @@ export default function AuthScreen() {
               ? "Use face ID/TouchID or PIN to access your App"
               : "Enter your to access your Medication"}
           </Text>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity
+            style={[styles.button, isAuthenticating && styles.buttonDisabled]}
+            onPress={authenticate}
+            disabled={isAuthenticating}
+          >
             <Ionicons
               name={hasBiometrics ? "finger-print-outline" : "keypad-outline"}
               size={24}
               color="white"
+              style={styles.buttonIcon}
             />
             <Text style={styles.buttonText}>
               {isAuthenticating
@@ -90,7 +135,7 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: "white",
     marginBottom: 40,
     textAlign: "center",
@@ -155,5 +200,8 @@ const styles = StyleSheet.create({
     color: "#ffebee",
     marginLeft: 8,
     fontSize: 14,
+  },
+  buttonIcon: {
+    marginRight: 10,
   },
 });
