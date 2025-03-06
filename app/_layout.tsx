@@ -14,7 +14,8 @@ export default function RootLayout() {
           navigationBarHidden: true,
         }}
       />
-      {/* <Stack.Screen name="index" options={{ headerShown: false }} /> */}
+      {/* <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="medications/add" options={{ headerShown: false }} /> */}
     </>
   );
 }

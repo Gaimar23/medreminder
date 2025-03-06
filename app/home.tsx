@@ -1,6 +1,7 @@
 import {
   Animated,
   Dimensions,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -170,20 +171,28 @@ export default function HomeScreen() {
       </View>
 
       {/* Today's medication */}
-      <View>
-        <View>
-          <Text>Today's schedule</Text>
+      <View style={{ paddingHorizontal: 20 }}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Today's schedule</Text>
           <Link href={"/calendar"}>
-            <Text>See All</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllButton}>See All</Text>
+            </TouchableOpacity>
           </Link>
         </View>
         {true ? (
-          <View>
+          <View style={styles.emptyState}>
             <Ionicons name="medical-outline" size={48} color="#ccc" />
-            <Text>No Medications scheduled for today</Text>
+            <Text
+              style={{ marginVertical: 10, color: "#666", marginBottom: 20 }}
+            >
+              No Medications scheduled for today
+            </Text>
             <Link href="/medications/add">
-              <TouchableOpacity>
-                <Text>Add Medication</Text>
+              <TouchableOpacity style={styles.addMedicationButton}>
+                <Text style={styles.addMedicationButtonText}>
+                  Add Medication
+                </Text>
               </TouchableOpacity>
             </Link>
           </View>
@@ -193,29 +202,29 @@ export default function HomeScreen() {
             {medicationList.map((medication) => {
               // const taken =""
               return (
-                <View>
-                  <View>
+                <View style={styles.doseCard}>
+                  <View style={styles.doseBadge}>
                     <Ionicons name="medical" size={24} />
                   </View>
-                  <View>
+                  <View style={styles.doseInfo}>
                     <View>
-                      <Text>name</Text>
-                      <Text>Dosage</Text>
+                      <Text style={styles.medicineName}>name</Text>
+                      <Text style={styles.dosageInfo}>Dosage</Text>
                     </View>
-                    <View>
+                    <View style={styles.doseTime}>
                       <Ionicons name="time-outline" size={16} />
-                      <Text>time</Text>
+                      <Text style={styles.timeText}>time</Text>
                     </View>
                   </View>
                   {true ? (
-                    <TouchableOpacity>
+                    <TouchableOpacity style={styles.takeDoseButton}>
                       <Ionicons name="checkmark-circle-outline" size={16} />
-                      <Text>Taken</Text>
+                      <Text style={styles.takeDoseText}>Taken</Text>
                     </TouchableOpacity>
                   ) : (
-                    <TouchableOpacity>
-                      <Ionicons name="close-circle-outline" size={16} />
-                      <Text>Take</Text>
+                    <TouchableOpacity style={styles.takeDoseButton}>
+                      {/* <Ionicons name="close-circle-outline" size={16} /> */}
+                      <Text style={styles.takeDoseText}>Take</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -224,6 +233,44 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
+
+      {/* Modal or pop up */}
+
+      {/* <Modal visible={true} transparent={true} animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContent,
+              {
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              },
+            ]}
+          >
+            <Text style={styles.modalTItle}>Notification</Text>
+            <TouchableOpacity style={styles.modalCloseButton}>
+              <Ionicons name="close" size={24} color={"#333"} />
+            </TouchableOpacity>
+          </View>
+          {[].map((medicationList) => {
+            return (
+              <View style={styles.notificationItem}>
+                <View style={styles.notificationIcon}>
+                  <Ionicons name="medical" size={24} color={"#333"} />
+                </View>
+                <View style={styles.notificationContent}>
+                  <Text style={styles.notificationTitle}>Medication Name</Text>
+                  <Text style={styles.notificationMessage}>
+                    Medication Dosage
+                  </Text>
+                  <Text style={styles.notificationTime}>Medication Time</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </Modal> */}
     </ScrollView>
   );
 }
@@ -231,7 +278,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: "#1a8e2d",
     backgroundColor: "white",
   },
   header: {
@@ -357,5 +403,151 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1A1A1A",
     marginBottom: 5,
+  },
+
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  seeAllButton: {
+    color: "#2E7D32",
+    fontWeight: "600",
+  },
+
+  emptyState: {
+    fontSize: 16,
+    color: "#666",
+    marginTop: 10,
+    marginBottom: 20,
+    alignItems: "center",
+  },
+
+  addMedicationButton: {
+    backgroundColor: "#1A8E2D",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  addMedicationButtonText: {
+    color: "white",
+    fontWeight: "600",
+  },
+  doseCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  doseBadge: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  doseInfo: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  medicineName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+  },
+  dosageInfo: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 4,
+  },
+  doseTime: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  timeText: {
+    marginLeft: 5,
+    color: "#666",
+    fontSize: 14,
+  },
+  takeDoseButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 15,
+    marginLeft: 10,
+  },
+  takeDoseText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+
+  // styling the modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: "80%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  modalTItle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  modalCloseButton: { padding: 5 },
+  notificationItem: {
+    padding: 15,
+    borderRadius: 12,
+    backgroundColor: "#f5f5f5",
+    marginBottom: 10,
+  },
+  notificationIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E8F5E9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+  },
+  notificationMessage: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 4,
+  },
+  notificationTime: {
+    fontSize: 12,
+    color: "#999",
   },
 });
