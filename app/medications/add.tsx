@@ -8,12 +8,15 @@ import {
   ScrollView,
   TextInput,
   Switch,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
+import { addMedication } from "@/utilis/storage";
+import { scheduleMedicationReminder } from "@/utilis/notifications";
 
 const FREQUENCIES = [
   {
@@ -87,7 +90,10 @@ export default function AddMedicationScreen() {
                 styles.optionsCard,
                 selectedFrequency === freq.label && styles.selectedOptionCard,
               ]}
-              onPress={() => setSelectedFrequency(freq.label)}
+              onPress={() => {
+                setSelectedFrequency(freq.label);
+                setForm({ ...form, frequency: freq.label });
+              }}
             >
               <View
                 style={[
@@ -130,6 +136,10 @@ export default function AddMedicationScreen() {
                 selectedDuration === duration.label &&
                   styles.selectedOptionCard,
               ]}
+              onPress={() => {
+                setSelectedDuration(duration.label);
+                setForm({ ...form, duration: duration.label });
+              }}
             >
               <Text
                 style={[
@@ -164,15 +174,71 @@ export default function AddMedicationScreen() {
     if (!form.dosage.trim()) {
       newErrors.dosage = "Medication dosage is required";
     }
-    if (!form.frequency.trim()) {
+    if (!form.frequency) {
       newErrors.frequency = "Medication frequency is required";
     }
-    if (!form.duration.trim()) {
+    if (!form.duration) {
       newErrors.duration = "Medication duration is required";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    try {
+      if (!validateForm()) {
+        Alert.alert("Error:", "Please fill in all required fields");
+        return;
+      }
+
+      if (isSubmitting) return;
+      setIsSubmitting(true);
+      const colors = ["#4CAF50", "#2196F3", "#E91E63"];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+      const medicationData = {
+        id: Math.random().toString(36).substring(2, 9),
+        ...form,
+        currentSupply: form.currentSupply ? Number(form.currentSupply) : 0,
+        totalSupply: form.currentSupply ? Number(form.currentSupply) : 0,
+        refillAt: form.refillAt ? Number(form.refillAt) : 0,
+        startDate: form.startDate.toISOString(),
+        color: randomColor,
+      };
+
+      await addMedication(medicationData);
+
+      if (medicationData.reminderEnable) {
+        await scheduleMedicationReminder(medicationData);
+      }
+
+      Alert.alert(
+        "Success",
+        "Medication added successfully",
+        [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ],
+        { cancelable: false }
+      );
+    } catch (err) {
+      console.log(err);
+      Alert.alert(
+        "Error",
+        "Failed to save medication, please try again",
+        [
+          {
+            text: "OK",
+          },
+        ],
+        { cancelable: false }
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -387,6 +453,7 @@ export default function AddMedicationScreen() {
               styles.saveButton,
               isSubmitting && styles.saveButtonDisabled,
             ]}
+            onPress={handleSubmit}
           >
             <LinearGradient
               colors={["#1A8E2D", "#146922"]}
