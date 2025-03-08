@@ -14,7 +14,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Circle } from "react-native-svg";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import {
   DosageHistory,
   getMedications,
@@ -133,6 +133,9 @@ export default function HomeScreen() {
   const [completedDoses, setCompletedDoses] = useState(0);
   const [doseHistory, setDoseHistory] = useState<DosageHistory[]>([]);
   const [medications, setMedications] = useState<Medication[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const router = useRouter();
 
   const loadMedications = useCallback(async () => {
     try {
@@ -235,7 +238,7 @@ export default function HomeScreen() {
 
   const isDoseTaken = (medicationId: string) => {
     return doseHistory.some(
-      (dose) => dose.medicationId === medicationId && dose.taken
+      (dose) => dose.medicationId === medicationId && !dose.taken
     );
   };
 
@@ -252,7 +255,10 @@ export default function HomeScreen() {
             <View>
               <Text style={styles.greeting}>Daily Progress</Text>
             </View>
-            <TouchableOpacity style={styles.notificationButton}>
+            <TouchableOpacity
+              style={styles.notificationButton}
+              onPress={() => setShowNotifications(true)}
+            >
               <Ionicons
                 name={"notifications-outline"}
                 size={24}
@@ -306,7 +312,7 @@ export default function HomeScreen() {
       <View style={{ paddingHorizontal: 20 }}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Today's schedule</Text>
-          <Link href={"/calendar"}>
+          <Link href={"/calendar"} asChild>
             <TouchableOpacity>
               <Text style={styles.seeAllButton}>See All</Text>
             </TouchableOpacity>
@@ -334,7 +340,7 @@ export default function HomeScreen() {
             {todaysMedications.map((medication) => {
               const taken = isDoseTaken(medication.id);
               return (
-                <View style={styles.doseCard}>
+                <View style={styles.doseCard} key={medication.id}>
                   <View
                     style={[
                       styles.doseBadge,
@@ -379,7 +385,12 @@ export default function HomeScreen() {
 
       {/* Modal or pop up */}
 
-      {/* <Modal visible={true} transparent={true} animationType="slide">
+      <Modal
+        visible={showNotifications}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowNotifications(false)}
+      >
         <View style={styles.modalOverlay}>
           <View
             style={[
@@ -392,28 +403,35 @@ export default function HomeScreen() {
             ]}
           >
             <Text style={styles.modalTItle}>Notification</Text>
-            <TouchableOpacity style={styles.modalCloseButton}>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowNotifications(false)}
+            >
               <Ionicons name="close" size={24} color={"#333"} />
             </TouchableOpacity>
           </View>
-          {[].map((medicationList) => {
+          {todaysMedications.map((medication) => {
             return (
-              <View style={styles.notificationItem}>
+              <View style={styles.notificationItem} key={medication.id}>
                 <View style={styles.notificationIcon}>
                   <Ionicons name="medical" size={24} color={"#333"} />
                 </View>
                 <View style={styles.notificationContent}>
-                  <Text style={styles.notificationTitle}>Medication Name</Text>
-                  <Text style={styles.notificationMessage}>
-                    Medication Dosage
+                  <Text style={styles.notificationTitle}>
+                    {medication.name}
                   </Text>
-                  <Text style={styles.notificationTime}>Medication Time</Text>
+                  <Text style={styles.notificationMessage}>
+                    {medication.dosage}
+                  </Text>
+                  <Text style={styles.notificationTime}>
+                    {medication.times[0]}
+                  </Text>
                 </View>
               </View>
             );
           })}
         </View>
-      </Modal> */}
+      </Modal>
     </ScrollView>
   );
 }
@@ -628,6 +646,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 15,
     marginLeft: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
   },
   takeDoseText: {
     color: "white",
